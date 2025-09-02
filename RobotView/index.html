@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/style.css">
+    <title>Robot Viewer</title>
+</head>
+
+<body>
+    <div class="menubar">
+        <a href="/">Robot Viewer</a>
+        <button onclick="openMenu(1)">Camera</button>
+        <button onclick="openMenu(2)">Serial</button>
+        <button onclick="openMenu(3)">Float</button>
+        <button onclick="settingsPage.showModal()">Settings</button>
+        <span id="statusBar">Camera: ❌ | Serial: ❌ | Web Socket: ❌</span>
+    </div>
+    <main>
+        <div id="sidebar">
+            <ul id="console">
+                
+            </ul>
+        </div>
+        <div id="editor">
+            <noscript>
+                <h1>Where are your manners?</h1>
+                <h2>You need javascript to use this</h2>
+            </noscript>
+            <video id="cameraVideo" autoplay></video>
+        </div>
+    </main>
+
+    <div id="notification"></div>
+    <div id="error"></div>
+
+    <dialog id="start" style="text-align: center;">
+        <h1>Welcome to Robot Viewer</h1>
+        <p>There are some prerequisites required to connect to the robot.</p>
+        <div id="stepsBar">Camera: ❌ | Serial: ❌ | Web Socket: ❌</div>
+        <!-- Conection Steps -->
+        <div class="steps">
+            <div id="step1">
+                <!-- Camera -->
+                <p>Plug the Camera Cable into a USB port on the Computer</p>
+                <p>Click on Test when the Camera is Connected</p>
+                <button onclick="testCamera()">Test</button>
+                <button onclick="moveToStep(2)">Next Step</button>
+            </div>
+            <div id="step2" style="display: none;">
+                <p>Plug the USB Cable from the Control Box into a USB port on the Computer</p>
+                <p>Click on Test when the Control Box is Connected then Select Arduino form the list</p>
+                <button onclick="testSerial()">Test</button>
+                <button onclick="moveToStep(3)">Next Step</button>
+            </div>
+            <div id="step3" style="display: none;">
+                <p>No web socket server right now</p>
+                <p>Click on Test when the server is Connected</p>
+                <button onclick="">Test</button>
+                <button onclick="startPage.close()">Close</button>
+            </div>
+        </div>
+    </dialog>
+
+    <dialog id="setting" style="text-align: center;">
+        <h1>Settings</h1>
+        <p>Enter Conection setting</p>
+        <button onclick="startPage.showModal(); moveToStep(1)">Conection Setting</button>
+        <br><button onclick="if (confirm('You sure?')) {localStorage.removeItem('nbSave')}">Clear local storage</button>
+        <br><button onclick="settingsPage.close();">Close</button>
+    </dialog>
+
+    <dialog id="cameraMenu">
+        <button>Take Picture</button>
+        <br><button>Enter Fullscreen</button>
+        <br><br><button onclick="openMenu()">Exit</button>
+    </dialog>
+
+    <dialog id="serialMenu">
+        <button onclick="document.getElementById('console').innerHTML = ''; openMenu()">Clear Terminal</button>
+        <br><button>Line Wrap</button>
+        <br><br><button onclick="openMenu()">Exit</button>
+    </dialog>
+
+    <dialog id="floatMenu">
+        <button>Get Log</button>
+        <br><br><button onclick="openMenu()">Exit</button>
+    </dialog>
+</body>
+<script src="/script.js"></script>
+
+</html>
