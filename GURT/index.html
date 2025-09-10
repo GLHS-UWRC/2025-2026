@@ -4,13 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/style.css">
-    <title>Robot Viewer</title>
+    <link rel="stylesheet" href="./style.css">
+    <title>GURT App</title>
 </head>
 
 <body>
     <div class="menubar">
-        <a href="/">Robot Viewer</a>
+        <a href="/">GURT App</a>
         <button onclick="openMenu(1)">Camera</button>
         <button onclick="openMenu(2)">Serial</button>
         <button onclick="openMenu(3)">Float</button>
@@ -36,7 +36,8 @@
     <div id="error"></div>
 
     <dialog id="start" style="text-align: center;">
-        <h1>Welcome to Robot Viewer</h1>
+        <h1>Welcome to GURT App</h1>
+        <p><strong>G</strong>rounded <strong>U</strong>nderwater <strong>R</strong>emote <strong>T</strong>ethering</p>
         <p>There are some prerequisites required to connect to the robot.</p>
         <div id="stepsBar">Camera: ❌ | Serial: ❌ | Web Socket: ❌</div>
         <!-- Conection Steps -->
@@ -88,6 +89,6 @@
         <br><br><button onclick="openMenu()">Exit</button>
     </dialog>
 </body>
-<script src="/script.js"></script>
+<script src="./script.js"></script>
 
 </html>
