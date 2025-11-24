@@ -17,6 +17,8 @@ document.addEventListener("DOMContentLoaded", function() {
     startPage.showModal();
 })
 
+let port;
+
 // Steps
 function moveToStep(step) {
     document.getElementById("step1").style.display = (step == 1) ? "block" : "none";
@@ -173,9 +175,8 @@ let receivedData = "";
 
 async function startSerial() {
     try {
-        const port = await navigator.serial.requestPort();
+        port = await navigator.serial.requestPort();
         await port.open({ baudRate: 9600 });
-        
 
         const textDecoder = new TextDecoderStream();
         const readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
@@ -194,7 +195,7 @@ async function startSerial() {
             while ((newlineIndex = receivedData.indexOf('\n')) !== -1) {
                 const line = receivedData.substring(0, newlineIndex).trim();
                 if (line) {
-                    if (line === "Hello World") {
+                    if (line.toLocaleLowerCase() === "hello world") {
                         connectionStatus.serial = true;
                         updateStatus();
                         notification("Arduino Connected");
@@ -214,6 +215,17 @@ async function startSerial() {
     }
 }
 
+async function writeSerial(dataGotten) {
+    const writer = port.writable.getWriter();
+    const encoder = new TextEncoder();
+
+    const data = encoder.encode(dataGotten + '\n');
+    await writer.write(data);
+
+    // Allow the serial port to be closed later.
+    writer.releaseLock();
+}
+
 function addToConsole(line) {
     const consoleElement = document.getElementById('console');
     let nextLine = document.createElement('li');
@@ -221,3 +233,11 @@ function addToConsole(line) {
     consoleElement.appendChild(nextLine);
     nextLine.scrollIntoView();
 }
+
+function changeTheme(color1, color2, color3, color4){
+    const root = document.documentElement;
+    root.style.setProperty('--color1', color1);
+    root.style.setProperty('--color2', color2);
+    root.style.setProperty('--color3', color3);
+    root.style.setProperty('--color4', color4);
+  }

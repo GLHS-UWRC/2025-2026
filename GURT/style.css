@@ -1,143 +1,172 @@
-body {
-    font-family: 'Ubuntu', sans-serif;
-    margin: 0;
-    height: 100vh;
-    background-color: #777777;
+:root {
+    --color1: #FFFFFF;
+    --color2: #FFFFFF;
+    --color3: #ababab;
+    --color4: black;
   }
 
-  main {
-    display: flex;
-    flex-direction: row;
-    height: 97%;
-  }
+  body {
+      font-family: 'Ubuntu', sans-serif;
+      margin: 0;
+      height: 100vh;
+      background-color: var(--color1);
+    }
 
-  #sidebar {
-    min-width: 300px;
-    background-color: #8d8d8d;
-    border-right: 2px solid #707070;
-    padding: 10px;
-    overflow-y: scroll;
-  }
+    main {
+      display: flex;
+      flex-direction: row;
+      height: 97%;
+    }
 
-  #editor {
-      flex: 1;
-  }
+    p {
+      color: var(--color4);
+    }
 
-  .menubar {
-      background-color: #616161;
-      padding: 5px 15px;
-  }
+    h1 {
+      color: var(--color4);
+    }
 
-  .menubar button,
-  .menubar input,
-  .menubar span {
-      margin-left: 2.5px;
-  }
 
-  #cameraMenu {
-    position: fixed;
-    top: 3%;
-    left: 116px;
-    margin: 0;
-  }
+    #sidebar {
+      min-width: 300px;
+      background-color: var(--color1);
+      border-right: 2px solid var(--color4);
+      padding: 10px;
+      overflow-y: scroll;
+      color: var(--color3);
+    }
 
-  #serialMenu {
-    position: fixed;
-    top: 3%;
-    left: 186px;
-    margin: 0;
-  }
+    #stepsBar {
+      color: var(--color4);
+    }
 
-  #floatMenu {
+    #statusBar {
+      color: var(--color4);
+    }
+
+    #editor {
+        flex: 1;
+    }
+
+    .menubar {
+        background-color: var(--color3);
+        padding: 5px 15px;
+    }
+
+    .menubar button,
+    .menubar input,
+    .menubar span {
+        margin-left: 2.5px;
+    }
+
+    #cameraMenu {
       position: fixed;
       top: 3%;
-      left: 244px;
+      left: 116px;
       margin: 0;
-  }
+    }
 
-  #start {
-    list-style-position: inside;
-    text-align: left;
-  }
-
-  #cameraVideo {
-    max-width: 100%;
-  }
-
-  /* Toasts */
-
-  @keyframes fadein {
-      from {
-          bottom: 0;
-          opacity: 0;
-      }
-
-      to {
-          bottom: 30px;
-          opacity: 1;
-      }
-  }
-
-  @keyframes fadeout {
-      from {
-          bottom: 30px;
-          opacity: 1;
-      }
-
-      to {
-          bottom: 0;
-          opacity: 0;
-      }
-  }
-
-  #notification {
-      visibility: hidden;
-      min-width: 100px;
-      margin-left: -100px;
-      background-color: #333;
-      color: #fff;
-      text-align: center;
-      border-radius: 2px;
-      padding: 16px;
+    #serialMenu {
       position: fixed;
-      z-index: 1;
-      left: 50%;
-      bottom: 30px;
-      font-size: 35px;
+      top: 3%;
+      left: 186px;
+      margin: 0;
+    }
+
+    #floatMenu {
+        position: fixed;
+        top: 3%;
+        left: 244px;
+        margin: 0;
+    }
+
+    #start {
+      list-style-position: inside;
+      text-align: left;
+    }
+
+    #cameraVideo {
+      max-width: 100%;
+    }
+
+    /* Toasts */
+
+    @keyframes fadein {
+        from {
+            bottom: 0;
+            opacity: 0;
+        }
+
+        to {
+            bottom: 30px;
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadeout {
+        from {
+            bottom: 30px;
+            opacity: 1;
+        }
+
+        to {
+            bottom: 0;
+            opacity: 0;
+        }
+    }
+
+    #notification {
+        visibility: hidden;
+        min-width: 100px;
+        margin-left: -100px;
+        background-color: #333;
+        color: var(--color2);
+        text-align: center;
+        border-radius: 2px;
+        padding: 16px;
+        position: fixed;
+        z-index: 1;
+        left: 50%;
+        bottom: 30px;
+        font-size: 35px;
+    }
+
+    #notification.show {
+        border-radius: 25px;
+        visibility: visible;
+        -webkit-animation: fadein 0.5s, fadeout 0.5s 4s;
+        animation: fadein 0.5s, fadeout 0.5s 4s;
+    }
+
+    #error {
+        visibility: hidden;
+        min-width: 100px;
+        margin-left: -100px;
+        background-color: #fd2a2a;
+        color: var(--color2);
+        text-align: center;
+        border-radius: 2px;
+        padding: 16px;
+        position: fixed;
+        z-index: 1;
+        left: 50%;
+        bottom: 30px;
+        font-size: 35px;
+    }
+
+    #error.show {
+        border-radius: 25px;
+        visibility: visible;
+        -webkit-animation: fadein 0.5s, fadeout 0.5s 4s;
+        animation: fadein 0.5s, fadeout 0.5s 4s;
+    }
+
+  .test {
+    color: black;
   }
 
-  #notification.show {
-      border-radius: 25px;
-      visibility: visible;
-      -webkit-animation: fadein 0.5s, fadeout 0.5s 4s;
-      animation: fadein 0.5s, fadeout 0.5s 4s;
-  }
-
-  #error {
-      visibility: hidden;
-      min-width: 100px;
-      margin-left: -100px;
-      background-color: #fd2a2a;
-      color: #fff;
-      text-align: center;
-      border-radius: 2px;
-      padding: 16px;
-      position: fixed;
-      z-index: 1;
-      left: 50%;
-      bottom: 30px;
-      font-size: 35px;
-  }
-
-  #error.show {
-      border-radius: 25px;
-      visibility: visible;
-      -webkit-animation: fadein 0.5s, fadeout 0.5s 4s;
-      animation: fadein 0.5s, fadeout 0.5s 4s;
-  }
-
-  /* Steps */
-  .steps {
-    border: 2px solid black;
-    margin: 10px;
-  }
+    /* Steps */
+    .steps {
+      border: 2px solid var(--color4);
+      margin: 10px;
+    }

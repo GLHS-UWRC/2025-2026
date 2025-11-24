@@ -69,6 +69,12 @@
         <p>Enter Conection setting</p>
         <button onclick="startPage.showModal(); moveToStep(1)">Conection Setting</button>
         <br><button onclick="if (confirm('You sure?')) {localStorage.removeItem('nbSave')}">Clear local storage</button>
+        <p>Themes</p>
+        <button onclick="changeTheme('white', 'white', 'white', 'black')">Light</button>
+        <br>
+        <button onclick="changeTheme('black', 'black', 'black', 'white')">Dark</button>
+        <br>
+        <button onclick="changeTheme('pink', 'pink', `rgb(233, 127, 145)`, 'black')">Pink</button>
         <br><button onclick="settingsPage.close();">Close</button>
     </dialog>
 
