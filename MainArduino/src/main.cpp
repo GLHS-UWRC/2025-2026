@@ -1,9 +1,19 @@
 #include <Arduino.h>
+#include <stddef.h>
 
 String inputData = "";
+enum class ResponseKind {
+  Stop = 0,
+  Forward,
+  Back,
+  Left,
+  Right,
+  FlashLight
+};
 
 void setup() {
   Serial.begin(9600);
+
   while (!Serial) {
     digitalWrite(LED_BUILTIN, HIGH);
     delay(100);

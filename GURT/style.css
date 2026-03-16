@@ -1,172 +1,172 @@
 :root {
-    --color1: #FFFFFF;
-    --color2: #FFFFFF;
-    --color3: #ababab;
-    --color4: black;
-  }
+--color1: #E0E0E0;
+--color2: white;
+--color3: grey;
+--color4: black;
+}
 
-  body {
-      font-family: 'Ubuntu', sans-serif;
-      margin: 0;
-      height: 100vh;
-      background-color: var(--color1);
-    }
+body {
+font-family: 'Ubuntu', sans-serif;
+margin: 0;
+height: 100vh;
+background-color: var(--color1);
+}
 
-    main {
-      display: flex;
-      flex-direction: row;
-      height: 97%;
-    }
+main {
+display: flex;
+flex-direction: row;
+height: 97%;
+}
 
-    p {
-      color: var(--color4);
-    }
+p {
+color: var(--color4);
+}
 
-    h1 {
-      color: var(--color4);
-    }
+h1 {
+color: var(--color4);
+}
 
 
-    #sidebar {
-      min-width: 300px;
-      background-color: var(--color1);
-      border-right: 2px solid var(--color4);
-      padding: 10px;
-      overflow-y: scroll;
-      color: var(--color3);
-    }
+#sidebar {
+min-width: 300px;
+background-color: var(--color1);
+border-right: 2px solid var(--color4);
+padding: 10px;
+overflow-y: scroll;
+color: var(--color3);
+}
 
-    #stepsBar {
-      color: var(--color4);
-    }
+#stepsBar {
+color: var(--color4);
+}
 
-    #statusBar {
-      color: var(--color4);
-    }
+#statusBar {
+color: var(--color4);
+}
 
-    #editor {
-        flex: 1;
-    }
+#editor {
+flex: 1;
+}
 
-    .menubar {
-        background-color: var(--color3);
-        padding: 5px 15px;
-    }
+.menubar {
+background-color: var(--color3);
+padding: 5px 15px;
+}
 
-    .menubar button,
-    .menubar input,
-    .menubar span {
-        margin-left: 2.5px;
-    }
+.menubar button,
+.menubar input,
+.menubar span {
+margin-left: 2.5px;
+}
 
-    #cameraMenu {
-      position: fixed;
-      top: 3%;
-      left: 116px;
-      margin: 0;
-    }
+#cameraMenu {
+position: fixed;
+top: 3%;
+left: 116px;
+margin: 0;
+}
 
-    #serialMenu {
-      position: fixed;
-      top: 3%;
-      left: 186px;
-      margin: 0;
-    }
+#serialMenu {
+position: fixed;
+top: 3%;
+left: 186px;
+margin: 0;
+}
 
-    #floatMenu {
-        position: fixed;
-        top: 3%;
-        left: 244px;
-        margin: 0;
-    }
+#floatMenu {
+position: fixed;
+top: 3%;
+left: 244px;
+margin: 0;
+}
 
-    #start {
-      list-style-position: inside;
-      text-align: left;
-    }
+#start {
+list-style-position: inside;
+text-align: left;
+}
 
-    #cameraVideo {
-      max-width: 100%;
-    }
+#cameraVideo {
+max-width: 100%;
+}
 
-    /* Toasts */
+/* Toasts */
 
-    @keyframes fadein {
-        from {
-            bottom: 0;
-            opacity: 0;
-        }
+@keyframes fadein {
+from {
+  bottom: 0;
+  opacity: 0;
+}
 
-        to {
-            bottom: 30px;
-            opacity: 1;
-        }
-    }
+to {
+  bottom: 30px;
+  opacity: 1;
+}
+}
 
-    @keyframes fadeout {
-        from {
-            bottom: 30px;
-            opacity: 1;
-        }
+@keyframes fadeout {
+from {
+  bottom: 30px;
+  opacity: 1;
+}
 
-        to {
-            bottom: 0;
-            opacity: 0;
-        }
-    }
+to {
+  bottom: 0;
+  opacity: 0;
+}
+}
 
-    #notification {
-        visibility: hidden;
-        min-width: 100px;
-        margin-left: -100px;
-        background-color: #333;
-        color: var(--color2);
-        text-align: center;
-        border-radius: 2px;
-        padding: 16px;
-        position: fixed;
-        z-index: 1;
-        left: 50%;
-        bottom: 30px;
-        font-size: 35px;
-    }
+#notification {
+visibility: hidden;
+min-width: 100px;
+margin-left: -100px;
+background-color: #333;
+color: var(--color2);
+text-align: center;
+border-radius: 2px;
+padding: 16px;
+position: fixed;
+z-index: 1;
+left: 50%;
+bottom: 30px;
+font-size: 35px;
+}
 
-    #notification.show {
-        border-radius: 25px;
-        visibility: visible;
-        -webkit-animation: fadein 0.5s, fadeout 0.5s 4s;
-        animation: fadein 0.5s, fadeout 0.5s 4s;
-    }
+#notification.show {
+border-radius: 25px;
+visibility: visible;
+-webkit-animation: fadein 0.5s, fadeout 0.5s 4s;
+animation: fadein 0.5s, fadeout 0.5s 4s;
+}
 
-    #error {
-        visibility: hidden;
-        min-width: 100px;
-        margin-left: -100px;
-        background-color: #fd2a2a;
-        color: var(--color2);
-        text-align: center;
-        border-radius: 2px;
-        padding: 16px;
-        position: fixed;
-        z-index: 1;
-        left: 50%;
-        bottom: 30px;
-        font-size: 35px;
-    }
+#error {
+visibility: hidden;
+min-width: 100px;
+margin-left: -100px;
+background-color: #fd2a2a;
+color: var(--color2);
+text-align: center;
+border-radius: 2px;
+padding: 16px;
+position: fixed;
+z-index: 1;
+left: 50%;
+bottom: 30px;
+font-size: 35px;
+}
 
-    #error.show {
-        border-radius: 25px;
-        visibility: visible;
-        -webkit-animation: fadein 0.5s, fadeout 0.5s 4s;
-        animation: fadein 0.5s, fadeout 0.5s 4s;
-    }
+#error.show {
+border-radius: 25px;
+visibility: visible;
+-webkit-animation: fadein 0.5s, fadeout 0.5s 4s;
+animation: fadein 0.5s, fadeout 0.5s 4s;
+}
 
-  .test {
-    color: black;
-  }
+.test {
+color: black;
+}
 
-    /* Steps */
-    .steps {
-      border: 2px solid var(--color4);
-      margin: 10px;
-    }
+/* Steps */
+.steps {
+border: 2px solid var(--color4);
+margin: 10px;
+}

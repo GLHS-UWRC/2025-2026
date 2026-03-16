@@ -1,6 +1,15 @@
 const settingsPage = document.getElementById("setting");
 const startPage = document.getElementById("start");
 
+const ResponseKind = {
+    Stop: 0,
+    Forward: 1,
+    Back: 2,
+    Left: 3,
+    Right: 4,
+    FlashLight: 5
+}
+
 let connectionStatus = {
     camera: false,
     serial: false,
@@ -232,6 +241,10 @@ function addToConsole(line) {
     nextLine.innerText = line;
     consoleElement.appendChild(nextLine);
     nextLine.scrollIntoView();
+}
+
+function testSerialConnection() {
+    writeSerial(ResponseKind.FlashLight);
 }
 
 function changeTheme(color1, color2, color3, color4){

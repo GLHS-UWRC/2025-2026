@@ -70,9 +70,11 @@
         <button onclick="startPage.showModal(); moveToStep(1)">Conection Setting</button>
         <br><button onclick="if (confirm('You sure?')) {localStorage.removeItem('nbSave')}">Clear local storage</button>
         <p>Themes</p>
-        <button onclick="changeTheme('white', 'white', 'white', 'black')">Light</button>
+        <button onclick="changeTheme('#E0E0E0', 'white', 'grey', 'black')">Default</button>
         <br>
-        <button onclick="changeTheme('black', 'black', 'black', 'white')">Dark</button>
+        <button onclick="changeTheme('white', 'white', '#f3f3f3', 'black')">Light</button>
+        <br>
+        <button onclick="changeTheme('#535353', 'black', '#303030', 'black')">Dark</button>
         <br>
         <button onclick="changeTheme('pink', 'pink', `rgb(233, 127, 145)`, 'black')">Pink</button>
         <br><button onclick="settingsPage.close();">Close</button>
@@ -85,7 +87,8 @@
     </dialog>
 
     <dialog id="serialMenu">
-        <button onclick="document.getElementById('console').innerHTML = ''; openMenu()">Clear Terminal</button>
+        <button onclick="if (confirm('Are you sure you want to reconnect the Serial? This will reset the Arduino')) testSerial();">Reconnect</button>
+        <br><button onclick="document.getElementById('console').innerHTML = ''; openMenu()">Clear Terminal</button>
         <br><button>Line Wrap</button>
         <br><br><button onclick="openMenu()">Exit</button>
     </dialog>
