@@ -20,7 +20,10 @@ let connectionStatus = {
 // Camera Vars
 let streamStarted = false;
 const cameraVideo = document.getElementById("cameraVideo");
+const cameraVideo2 = document.getElementById("cameraVideo2"); 
 let cameraStream;
+let cameraStream2; 
+
 
 document.addEventListener("DOMContentLoaded", function() {
     startPage.showModal();
@@ -36,10 +39,7 @@ function moveToStep(step) {
 }
 
 async function testCamera() {
-    if (await startStream(cameraConstraints) == "true") {
-        moveToStep(2);
-        
-    }
+   await startTwoCameras();
 }
 
 async function testSerial() {
@@ -114,50 +114,84 @@ let cameraConstraints = {
   
 async function getCameraSelection() {
     const devices = await navigator.mediaDevices.enumerateDevices();
-    const videoDevices = devices.filter((device) => device.kind === "videoinput");
-
-    return videoDevices;
-    const options = videoDevices.map((videoDevice) => {
-      return `<option value="${videoDevice.deviceId}">${videoDevice.label}</option>`;
-    });
-    cameraOptions.innerHTML = options.join("");
+    return devices.filter(device => device.kind === "videoinput");
 }
-  
-async function startStream(constraints) {
-    let res;
-    
-    await navigator.mediaDevices.getUserMedia(constraints)
-        .then(function (stream) { 
-            cameraStream = stream
-            res = "true";
-            cameraVideo.srcObject = cameraStream;
-            connectionStatus.camera = true;
-            updateStatus();
-            notification("Camera Connected");
-            cameraStream.getVideoTracks().forEach(function(track) {
-                track.onended = function () {
-                    connectionStatus.camera = false;
-                    connectionStatus.note = "Camera Disconnected. Attempting to Reconnect."
-                    updateStatus();
-                    error("Camera Disconnected")
-                    reconnectCamera();
-                };
-              });
-        })
-        .catch(function (error) {
-            if (error.name === 'NotAllowedError') {
-                res = 'Camera access denied by the user.';
-                error("Camera access denied.");
-            } else if (error.name === 'NotFoundError') {
-                console.error('No camera found.');
-                res = "The Camera was not found. Please check the conection then try agein. ";
-            } else {
-                console.error('getUserMedia error:', error);
-                res = 'getUserMedia error: ' + error
+  async function startSingleCamera(deviceId, videoElement, cameraNumber) {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                deviceId: { exact: deviceId },
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
             }
-        })
-    return res;
-};
+        });
+
+        videoElement.srcObject = stream;
+        videoElement.play();
+
+        stream.getVideoTracks().forEach(track => {
+            track.onended = function () {
+                connectionStatus.camera = false;
+                connectionStatus.note = `Camera ${cameraNumber} disconnected`;
+                updateStatus();
+                error(`Camera ${cameraNumber} disconnected`);
+            };
+        });
+
+        notification(`Camera ${cameraNumber} connected`);
+        return stream;
+
+    } catch (err) {
+        console.error(err);
+        error(`Camera ${cameraNumber} failed to start`);
+        return null;
+    }
+}
+
+async function startTwoCameras() {
+    try {
+        const cameras = await getCameraSelection();
+
+        console.log("Available cameras:", cameras);
+
+        if (cameras.length < 2) {
+            error("You need at least 2 cameras connected.");
+            return;
+        }
+
+        cameraStream = await startSingleCamera(
+            cameras[0].deviceId,
+            cameraVideo,
+            1
+        );
+
+        if (!cameraStream) {
+            error("Failed to initialize Camera 1");
+            return;
+        }
+
+        cameraStream2 = await startSingleCamera(
+            cameras[1].deviceId,
+            cameraVideo2,
+            2
+        );
+
+        if (!cameraStream2) {
+            error("Failed to initialize Camera 2");
+            return;
+        }
+
+        connectionStatus.camera = true;
+        connectionStatus.note = "";
+        updateStatus();
+        moveToStep(2);
+    } catch (err) {
+        console.error("Error in startTwoCameras:", err);
+        error("Failed to start cameras");
+        connectionStatus.camera = false;
+        updateStatus();
+    }
+}
 
 function stopStream() {
     if (cameraStream) {
@@ -168,15 +202,7 @@ function stopStream() {
 }
 
 async function reconnectCamera() {
-    if (await startStream(cameraConstraints) != "true") {
-        setTimeout(() => {
-            reconnectCamera();
-        }, 5000);
-    } else if (connectionStatus.note == "Camera Disconnected. Attempting to Reconnect.") {
-        connectionStatus.note = "";
-        updateStatus();
-    }
-    
+   await startTwoCameras(); 
 }
 
 // Serial
@@ -254,3 +280,7 @@ function changeTheme(color1, color2, color3, color4){
     root.style.setProperty('--color3', color3);
     root.style.setProperty('--color4', color4);
   }
+
+function changeSideBarLocation(newLocation){
+    // document.getElementById('serialMenu'). = newLocation;
+}
