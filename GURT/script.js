@@ -314,7 +314,7 @@ window.addEventListener("gamepadconnected", (e) => {
 });
 
 window.addEventListener("gamepaddisconnected", (e) => {
-    gamepadInfo.textContent = "Waiting for gamepad.";
+    notification("Gamepad disconnected");
     connectionStatus.controller = false;
     updateStatus();
     cancelAnimationFrame(gameLoop);
