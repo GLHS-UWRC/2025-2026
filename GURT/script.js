@@ -1,3 +1,7 @@
+// notes by dodge hikey
+// we should use typescript instad of javascrypt
+// thansk for listening to my ted talk
+
 const settingsPage = document.getElementById("setting");
 const startPage = document.getElementById("start");
 
@@ -14,6 +18,7 @@ let connectionStatus = {
     camera: false,
     serial: false,
     webSocket: false,
+    controller: false,
     note: ""
 }
 
@@ -49,7 +54,7 @@ async function testSerial() {
 // Helper Functions
 
 function updateStatus() {
-    const newStatus = ` Camera: ${connectionStatus.camera ? "✅" : "❌"} | Serial: ${connectionStatus.serial ? "✅" : "❌"} | Web Socket: ${connectionStatus.webSocket ? "✅" : "❌"} ${(connectionStatus.note == "") ? "" : "| " + connectionStatus.note}`;
+    const newStatus = ` Camera: ${connectionStatus.camera ? "✅" : "❌"} | Serial: ${connectionStatus.serial ? "✅" : "❌"} | Web Socket: ${connectionStatus.webSocket ? "✅" : "❌"} | Controller: ${connectionStatus.controller ? "✅" : "❌"} ${(connectionStatus.note == "") ? "" : "| " + connectionStatus.note}`;
     // TODO: Add StatusBartSipson
     document.getElementById("statusBar").innerText = newStatus;
     document.getElementById("stepsBar").innerText = newStatus;
@@ -97,56 +102,51 @@ function error(notaName) {
 }
 
 // Camera
-let cameraConstraints = {
-    video: {
-      width: {
-        min: 1280,
-        ideal: 1920,
-        max: 2560
-      },
-      height: {
-        min: 720,
-        ideal: 1080,
-        max: 1440
-      }
+    let cameraConstraints = {
+        video: {
+          width: {
+            min: 1280,
+            ideal: 1920,
+            max: 2560
+          },
+          height: {
+            min: 720,
+            ideal: 1080,
+            max: 1440
+          }
+        }
+    };
+    
+    async function getCameraSelection() {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        return devices.filter(device => device.kind === "videoinput");
     }
-};
-  
-async function getCameraSelection() {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    return devices.filter(device => device.kind === "videoinput");
-}
-  async function startSingleCamera(deviceId, videoElement, cameraNumber) {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                deviceId: { exact: deviceId },
-                width: { ideal: 1920 },
-                height: { ideal: 1080 }
-            }
-        });
 
-        videoElement.srcObject = stream;
-        videoElement.play();
+    async function startSingleCamera(deviceId, videoElement, cameraNumber) {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia(cameraConstraints);
 
-        stream.getVideoTracks().forEach(track => {
-            track.onended = function () {
-                connectionStatus.camera = false;
-                connectionStatus.note = `Camera ${cameraNumber} disconnected`;
-                updateStatus();
-                error(`Camera ${cameraNumber} disconnected`);
-            };
-        });
+            videoElement.srcObject = stream;
+            videoElement.play();
 
-        notification(`Camera ${cameraNumber} connected`);
-        return stream;
+            stream.getVideoTracks().forEach(track => {
+                track.onended = function () {
+                    connectionStatus.camera = false;
+                    connectionStatus.note = `Camera ${cameraNumber} disconnected`;
+                    updateStatus();
+                    error(`Camera ${cameraNumber} disconnected`);
+                };
+            });
 
-    } catch (err) {
-        console.error(err);
-        error(`Camera ${cameraNumber} failed to start`);
-        return null;
-    }
-}
+            notification(`Camera ${cameraNumber} connected`);
+            return stream;
+
+        } catch (err) {
+            console.error(err);
+            error(`Camera ${cameraNumber} failed to start`);
+            return null;
+        }
+    } 
 
 async function startTwoCameras() {
     try {
@@ -154,7 +154,7 @@ async function startTwoCameras() {
 
         console.log("Available cameras:", cameras);
 
-        if (cameras.length < 2) {
+        if (cameras.length < 1) {
             error("You need at least 2 cameras connected.");
             return;
         }
@@ -191,7 +191,7 @@ async function startTwoCameras() {
         connectionStatus.camera = false;
         updateStatus();
     }
-}
+} 
 
 function stopStream() {
     if (cameraStream) {
@@ -284,3 +284,38 @@ function changeTheme(color1, color2, color3, color4){
 function changeSideBarLocation(newLocation){
     // document.getElementById('serialMenu'). = newLocation;
 }
+
+function gameLoop() {
+    // This is where we will check for controller input and send it to the arduino
+    const gamepads = navigator.getGamepads();
+    if (!gamepads) {
+        return;
+    }
+    
+    const gp = gamepads[0]; // Assuming we only care about the first gamepad
+
+    if (gp.buttons[0].pressed) {
+        // Button B
+    }
+
+    
+
+    requestAnimationFrame(gameLoop);
+}
+
+let keep_going = false;
+
+window.addEventListener("gamepadconnected", (e) => {
+    const gp = navigator.getGamepads()[e.gamepad.index];
+    notification(`Gamepad connected: ${gp.id}`);
+    connectionStatus.controller = true;
+    gameLoop();
+    updateStatus();
+});
+
+window.addEventListener("gamepaddisconnected", (e) => {
+    gamepadInfo.textContent = "Waiting for gamepad.";
+    connectionStatus.controller = false;
+    updateStatus();
+    cancelAnimationFrame(gameLoop);
+});
