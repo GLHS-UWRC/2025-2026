@@ -1,7 +1,3 @@
-// notes by dodge hikey
-// we should use typescript instad of javascrypt
-// thansk for listening to my ted talk
-
 const settingsPage = document.getElementById("setting");
 const startPage = document.getElementById("start");
 
@@ -22,19 +18,9 @@ let connectionStatus = {
     note: ""
 }
 
-// Camera Vars
-let streamStarted = false;
-const cameraVideo = document.getElementById("cameraVideo");
-const cameraVideo2 = document.getElementById("cameraVideo2"); 
-let cameraStream;
-let cameraStream2; 
-
-
 document.addEventListener("DOMContentLoaded", function() {
     startPage.showModal();
 })
-
-let port;
 
 // Steps
 function moveToStep(step) {
@@ -54,11 +40,11 @@ async function testSerial() {
 // Helper Functions
 
 function updateStatus() {
-    const newStatus = ` Camera: ${connectionStatus.camera ? "✅" : "❌"} | Serial: ${connectionStatus.serial ? "✅" : "❌"} | Web Socket: ${connectionStatus.webSocket ? "✅" : "❌"} | Controller: ${connectionStatus.controller ? "✅" : "❌"} ${(connectionStatus.note == "") ? "" : "| " + connectionStatus.note}`;
+    const newStatus = ` Camera: ${connectionStatus.camera ? "✅" : "❌"} | Serial: ${connectionStatus.serial ? '✅ (<span id="serialTimer"></span>)' : "❌"} | Web Socket: ${connectionStatus.webSocket ? "✅" : "❌"} | Controller: ${connectionStatus.controller ? "✅" : "❌"} ${(connectionStatus.note == "") ? "" : "| " + connectionStatus.note}`;
     // TODO: Add StatusBartSipson
-    document.getElementById("statusBar").innerText = newStatus;
+    document.getElementById("statusBar").innerHTML = newStatus;
     document.getElementById("stepsBar").innerText = newStatus;
-}
+ }
 
 function openMenu(menuNum) {
     document.getElementById('cameraMenu').close();
@@ -102,6 +88,15 @@ function error(notaName) {
 }
 
 // Camera
+    let streamStarted = false;
+    const cameraVideo = document.getElementById("cameraVideo");
+    const cameraVideo2 = document.getElementById("cameraVideo2"); 
+    let cameraStream;
+    let cameraStream2; 
+    let cameraIDs = [];
+    const canvas = document.getElementById("canvas");
+    const canvas2 = document.getElementById("canvas2");
+
     let cameraConstraints = {
         video: {
           width: {
@@ -116,7 +111,7 @@ function error(notaName) {
           }
         }
     };
-    
+
     async function getCameraSelection() {
         const devices = await navigator.mediaDevices.enumerateDevices();
         return devices.filter(device => device.kind === "videoinput");
@@ -134,7 +129,14 @@ function error(notaName) {
                     connectionStatus.camera = false;
                     connectionStatus.note = `Camera ${cameraNumber} disconnected`;
                     updateStatus();
+                    reconnectCamera(deviceId, videoElement, cameraNumber);
                     error(`Camera ${cameraNumber} disconnected`);
+                    navigator.getGamepads()[0].vibrationActuator.playEffect("dual-rumble", {
+                      startDelay: 0,
+                      duration: 200,
+                      weakMagnitude: 1.0,
+                      strongMagnitude: 1.0,
+                    });
                 };
             });
 
@@ -143,7 +145,6 @@ function error(notaName) {
 
         } catch (err) {
             console.error(err);
-            error(`Camera ${cameraNumber} failed to start`);
             return null;
         }
     } 
@@ -153,10 +154,10 @@ async function startTwoCameras() {
         const cameras = await getCameraSelection();
 
         console.log("Available cameras:", cameras);
+        cameraIDs = cameras.map(camera => camera.deviceId);
 
-        if (cameras.length < 1) {
-            error("You need at least 2 cameras connected.");
-            return;
+        if (cameras.length < 2) {
+            error("You need at least 2 cameras connected but only 1 was found. Excpect issues.");
         }
 
         cameraStream = await startSingleCamera(
@@ -201,12 +202,56 @@ function stopStream() {
     }
 }
 
-async function reconnectCamera() {
-   await startTwoCameras(); 
+async function reconnectCamera(deviceId, videoElement, cameraNumber) {
+    let reconnectInterval = setInterval(async function() {
+        if (!connectionStatus.camera) {
+            console.log("Attempting to reconnect camera " + cameraNumber + "...");
+            if (await startSingleCamera(deviceId, videoElement, cameraNumber)) {
+                clearInterval(reconnectInterval);
+                connectionStatus.camera = true;
+                connectionStatus.note = ``;
+                updateStatus();
+                navigator.getGamepads()[0].vibrationActuator.playEffect("dual-rumble", {
+                    startDelay: 0,
+                    duration: 200,
+                    weakMagnitude: 1.0,
+                    strongMagnitude: 1.0,
+                });
+            }
+        }
+    }, 5000);
 }
+
+function captureImages() {
+    if (cameraVideo) {
+        cameraVideo.pause();
+        canvas.width = cameraVideo.videoWidth;
+        canvas.height = cameraVideo.videoHeight;
+        canvas.getContext("2d").drawImage(cameraVideo, 0, 0);
+        var dataURL = canvas.toDataURL("image/png");
+        cameraVideo.play();
+    }
+
+    if (cameraVideo2) {
+        cameraVideo2.pause();
+        canvas2.width = cameraVideo2.videoWidth;
+        canvas2.height = cameraVideo2.videoHeight;
+        canvas2.getContext("2d").drawImage(cameraVideo2, 0, 0);
+        var dataURL2 = canvas2.toDataURL("image/png");
+        cameraVideo2.play();
+    }
+
+    var newTab = window.open('about:blank','image from canvas');
+    newTab.document.write("<img src='" + dataURL + "' alt='from canvas'/>");
+};
 
 // Serial
 let receivedData = "";
+let port;
+let reader;
+let lastHeartbeat;
+
+let HorizontalThrust = 0;
 
 async function startSerial() {
     try {
@@ -215,50 +260,77 @@ async function startSerial() {
 
         const textDecoder = new TextDecoderStream();
         const readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
-        const reader = textDecoder.readable.getReader();
+        reader = textDecoder.readable.getReader();
 
-        while (true) {
-            const { value, done } = await reader.read();
-            if (done) {
-                console.log("No Arduino")
-                reader.releaseLock();
-                break;
-            }
-            receivedData += value;
-            let newlineIndex;
-
-            while ((newlineIndex = receivedData.indexOf('\n')) !== -1) {
-                const line = receivedData.substring(0, newlineIndex).trim();
-                if (line) {
-                    if (line.toLocaleLowerCase() === "hello world") {
-                        connectionStatus.serial = true;
-                        updateStatus();
-                        notification("Arduino Connected");
-                        moveToStep(3);
-                    }
-
-                    addToConsole(line);
+        while (port.readable) {
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) {
+                    console.log("No Arduino")
+                    reader.releaseLock();
+                    break;
                 }
-                receivedData = receivedData.substring(newlineIndex + 1);
+                receivedData += value;
+                let newlineIndex;
+
+                while ((newlineIndex = receivedData.indexOf('\n')) !== -1) {
+                    const line = receivedData.substring(0, newlineIndex).trim();
+                    if (line) {
+                        if (line.toLocaleLowerCase() === "hi") {
+                            connectionStatus.serial = true;
+                            updateStatus();
+                            notification("Arduino Connected");
+                            setInterval(serialHeartbeatTimer, 1000);
+                            moveToStep(3);
+                        } else if (line.toLocaleLowerCase() === "hb") {
+                            lastHeartbeat = new Date();
+                        } else if (line.toLocaleLowerCase().includes("ht")) {
+                            HorizontalThrust = line.toLocaleLowerCase().split("ht ")[1];
+                        } else {
+                            addToConsole(line);
+                        }
+                    }
+                    receivedData = receivedData.substring(newlineIndex + 1);
+                }
             }
         }
     } catch (errorText) {
         console.error("Error connecting to Arduino:", errorText);
         if (connectionStatus.serial) error("Arduino Disconnected");
+        reader?.cancel();
+        reader?.releaseLock();
+        if (port) {
+            await port.close();
+        }
         connectionStatus.serial = false;
         updateStatus();
     }
 }
 
+function serialHeartbeatTimer() {
+      const now = new Date();
+      const diffInMs = now - lastHeartbeat;
+
+      const totalSeconds = Math.floor(diffInMs / 1000);
+
+      if (document.getElementById('serialTimer')) document.getElementById('serialTimer').innerText = `${totalSeconds}s`;
+    }
+
 async function writeSerial(dataGotten) {
-    const writer = port.writable.getWriter();
-    const encoder = new TextEncoder();
-
-    const data = encoder.encode(dataGotten + '\n');
-    await writer.write(data);
-
-    // Allow the serial port to be closed later.
-    writer.releaseLock();
+    // console.log("Writing to Arduino:", dataGotten);
+    try {
+        const writer = port.writable.getWriter();
+        const encoder = new TextEncoder();
+    
+        const data = encoder.encode(dataGotten + '\n');
+        await writer.write(data);
+    
+        // Allow the serial port to be closed later.
+        writer.releaseLock();
+    } catch (errorText) {
+        console.error("Error writing to Arduino:", errorText);
+        error("Failed to send data to Arduino");
+    }
 }
 
 function addToConsole(line) {
@@ -285,6 +357,9 @@ function changeSideBarLocation(newLocation){
     // document.getElementById('serialMenu'). = newLocation;
 }
 
+let buttonPressed = new Array(18).fill(false);
+let axisRisingEdgeStorage = {}
+
 function gameLoop() {
     // This is where we will check for controller input and send it to the arduino
     const gamepads = navigator.getGamepads();
@@ -294,16 +369,48 @@ function gameLoop() {
     
     const gp = gamepads[0]; // Assuming we only care about the first gamepad
 
-    if (gp.buttons[0].pressed) {
-        // Button B
+    for(i = 0; i < 18; i++){
+        if(!gp.buttons[i].pressed) {
+            buttonPressed[i] = false;
+        } else if (gp.buttons[i].pressed && !buttonPressed[i]) {
+            buttonPressed[i] = true;
+            buttonAction(i);
+        }
     }
 
+
+    if (gp.axes[0] < -0.5 && !axisRisingEdgeStorage[0]) {
+        writeSerial(ResponseKind.Right.toString());
+    } else if (gp.axes[0] > 0.5 && !axisRisingEdgeStorage[0]) {
+        writeSerial(ResponseKind.Left.toString());
+    } else if (gp.axes[1] < -0.5 && !axisRisingEdgeStorage[1]) {
+        writeSerial(ResponseKind.Forward.toString());
+    } else if (gp.axes[1] > 0.5 && !axisRisingEdgeStorage[1]) {
+        writeSerial(ResponseKind.Back.toString());
+    } else if (Math.abs(gp.axes[0]) < 0.5 && Math.abs(gp.axes[1]) < 0.5 && (axisRisingEdgeStorage[0] || axisRisingEdgeStorage[1])) {
+        writeSerial(ResponseKind.Stop.toString());
+    }
+    axisRisingEdgeStorage[0] = Math.abs(gp.axes[0]) > 0.5;
+    axisRisingEdgeStorage[1] = Math.abs(gp.axes[1]) > 0.5;
+
+    for (var i=0; i<gp.axes.length; i++) {
+      const relativeOpacity = Math.max(0.1, Math.min(1, Math.abs(gp.axes[i] ?? 0)));
+      document.getElementById("controller1Status").getElementsByClassName("controllerProperty")[i].style.opacity = relativeOpacity;
+    }
     
 
     requestAnimationFrame(gameLoop);
 }
 
-let keep_going = false;
+function buttonAction(action) {
+        if(action == 0){
+            writeSerial(ResponseKind.FlashLight.toString());
+        } else if(action == 9){
+            writeSerial(ResponseKind.FlashLight.toString());
+        } else if(action == 17){
+            captureImages();
+        }
+    }
 
 window.addEventListener("gamepadconnected", (e) => {
     const gp = navigator.getGamepads()[e.gamepad.index];

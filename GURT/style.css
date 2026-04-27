@@ -176,3 +176,19 @@ color: black;
 border: 2px solid var(--color4);
 margin: 10px;
 }
+
+.controllerStatus {
+  display: inline-flex;
+}
+
+.controllerStatus div {
+  width: 20px;
+  height: 15px;
+  background-color: var(--color4);
+  margin-left: 5px;
+  border-radius: 10%;
+}
+
+.d-none {
+  display: none;
+}

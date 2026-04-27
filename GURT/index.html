@@ -15,7 +15,13 @@
         <button onclick="openMenu(2)">Serial</button>
         <button onclick="openMenu(3)">Float</button>
         <button onclick="settingsPage.showModal()">Settings</button>
-        <span id="statusBar">Camera: ❌ | Serial: ❌ | Web Socket: ❌</span>
+        <span id="statusBar">Camera: ❌ | Serial: ❌ | Web Socket: ❌ | Controller: ❌</span>
+        <span class="controllerStatus" id="controller1Status">
+            <div class="controllerProperty" style="opacity: 0.1;"></div>
+            <div class="controllerProperty" style="opacity: 0.1;"></div>
+            <div class="controllerProperty" style="opacity: 0.1;"></div>
+            <div class="controllerProperty" style="opacity: 0.1;"></div>
+        </span>
     </div>
     <main>
         <div id="sidebar">
@@ -29,6 +35,9 @@
                 <h2>You need javascript to use this</h2>
             </noscript>
             <video id="cameraVideo" autoplay></video>
+            <video id="cameraVideo2" autoplay></video>
+            <canvas class="d-none" id="canvas"></canvas>
+            <canvas class="d-none" id="canvas2"></canvas>
         </div>
     </main>
 
@@ -39,7 +48,7 @@
         <h1>Welcome to GURT App</h1>
         <p><strong>G</strong>rounded <strong>U</strong>nderwater <strong>R</strong>emote <strong>T</strong>ethering</p>
         <p>There are some prerequisites required to connect to the robot.</p>
-        <div id="stepsBar">Camera: ❌ | Serial: ❌ | Web Socket: ❌</div>
+        <div id="stepsBar">Camera: ❌ | Serial: ❌ | Web Socket: ❌ | Controller: ❌</div>
         <!-- Conection Steps -->
         <div class="steps">
             <div id="step1">
@@ -92,8 +101,10 @@
     </dialog>
 
     <dialog id="serialMenu">
-        <button onclick="if (confirm('Are you sure you want to reconnect the Serial? This will reset the Arduino')) testSerial();">Reconnect</button>
-        <br><button onclick="document.getElementById('console').innerHTML = ''; openMenu()">Clear Terminal</button>
+        <button onclick="if (confirm('Are you sure you want to reconnect the Serial? This will reset the Arduino')) testSerial(); openMenu();">Reconnect</button>
+        <br><button onclick="document.getElementById('console').innerHTML = ''; openMenu();">Clear Terminal</button>
+        <br><button onclick="testSerialConnection(); openMenu();">Send Serial Test</button>
+        <br><button onclick="writeSerial(prompt('Enter serial data:')); openMenu();">Send Serial</button>
         <br><button>Line Wrap</button>
         <br><br><button onclick="openMenu()">Exit</button>
     </dialog>
