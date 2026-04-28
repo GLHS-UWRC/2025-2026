@@ -7,7 +7,12 @@ const ResponseKind = {
     Back: 2,
     Left: 3,
     Right: 4,
-    FlashLight: 5
+    StopVertical: 5,
+    Up: 6,
+    Down: 7,
+    RollLeft: 8,
+    RollRight: 9,
+    FlashLight: 10
 }
 
 let connectionStatus = {
@@ -97,21 +102,6 @@ function error(notaName) {
     const canvas = document.getElementById("canvas");
     const canvas2 = document.getElementById("canvas2");
 
-    let cameraConstraints = {
-        video: {
-          width: {
-            min: 1280,
-            ideal: 1920,
-            max: 2560
-          },
-          height: {
-            min: 720,
-            ideal: 1080,
-            max: 1440
-          }
-        }
-    };
-
     async function getCameraSelection() {
         const devices = await navigator.mediaDevices.enumerateDevices();
         return devices.filter(device => device.kind === "videoinput");
@@ -119,7 +109,18 @@ function error(notaName) {
 
     async function startSingleCamera(deviceId, videoElement, cameraNumber) {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia(cameraConstraints);
+            const cameraConstraints = {
+                    video: {
+                      deviceId: { exact: deviceId }, 
+                      width: { ideal: 1920 },
+                      height: { ideal: 1080 }
+                    }
+                };
+            const stream = await navigator.mediaDevices.getUserMedia(cameraConstraints).catch(err => {
+                console.error(`Error accessing camera ${cameraNumber}:`, err);
+                error(`Failed to access Camera ${cameraNumber}`);
+                return null;
+            });
 
             videoElement.srcObject = stream;
             videoElement.play();
@@ -243,6 +244,7 @@ function captureImages() {
 
     var newTab = window.open('about:blank','image from canvas');
     newTab.document.write("<img src='" + dataURL + "' alt='from canvas'/>");
+    newTab.document.write("<img src='" + dataURL2 + "' alt='from canvas'/>");
 };
 
 // Serial
@@ -252,6 +254,28 @@ let reader;
 let lastHeartbeat;
 
 let HorizontalThrust = 0;
+let VerticalThrust = 0;
+
+function setVirtualRobotArrow(direction){
+    // Sets to nothing
+    // document.getElementById('virtualRobot').src = ;
+    if(direction == 1){
+        // Up
+        document.getElementById('virtualRobot').src = "./images/Up Blue Crab.png";
+    } else if (direction == 2){
+        // Down
+        document.getElementById('virtualRobot').src = "./images/Down Blue Crab.png";
+    } else if (direction == 3){
+        // Left
+        document.getElementById('virtualRobot').src = "./images/Left Blue Crab.png";
+    } else if (direction == 4){
+        // Right
+        document.getElementById('virtualRobot').src = "./images/Right Blue Crab.png";
+    } else {
+        // Stop
+        document.getElementById('virtualRobot').src = "";
+    }
+}
 
 async function startSerial() {
     try {
@@ -285,7 +309,11 @@ async function startSerial() {
                         } else if (line.toLocaleLowerCase() === "hb") {
                             lastHeartbeat = new Date();
                         } else if (line.toLocaleLowerCase().includes("ht")) {
-                            HorizontalThrust = line.toLocaleLowerCase().split("ht ")[1];
+                            HorizontalThrust = line.toLocaleLowerCase().split("ht")[1];
+                            // Sets the virtual robots arrow position.
+                            setVirtualRobotArrow(HorizontalThrust);
+                        } else if (line.toLocaleLowerCase().includes("vt")) {
+                            VerticalThrust = line.toLocaleLowerCase().split("vt")[1];
                         } else {
                             addToConsole(line);
                         }
@@ -392,6 +420,15 @@ function gameLoop() {
     }
     axisRisingEdgeStorage[0] = Math.abs(gp.axes[0]) > 0.5;
     axisRisingEdgeStorage[1] = Math.abs(gp.axes[1]) > 0.5;
+
+    if (gp.axes[3] < -0.5 && !axisRisingEdgeStorage[3]) {
+        writeSerial(ResponseKind.Up.toString());
+    } else if (gp.axes[3] > 0.5 && !axisRisingEdgeStorage[3]) {
+        writeSerial(ResponseKind.Down.toString());
+    } else if (Math.abs(gp.axes[3]) < 0.5 && axisRisingEdgeStorage[3]) {
+        writeSerial(ResponseKind.StopVertical.toString());
+    }
+    axisRisingEdgeStorage[3] = Math.abs(gp.axes[3]) > 0.5;
 
     for (var i=0; i<gp.axes.length; i++) {
       const relativeOpacity = Math.max(0.1, Math.min(1, Math.abs(gp.axes[i] ?? 0)));
