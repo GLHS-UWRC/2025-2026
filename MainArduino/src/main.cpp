@@ -6,6 +6,7 @@
 String inputData = "";
 int HorizontalThrust = 0;
 int VerticalThrust = 0;
+int ClawMovment = 0;
 enum class ResponseKind {
     Stop = 0,
     Forward = 1,
@@ -17,7 +18,10 @@ enum class ResponseKind {
     Down = 7,
     RollLeft = 8,
     RollRight = 9,
-    FlashLight = 10
+    ClawOpen = 10,
+    ClawClose = 11,
+    ClawStop = 12,
+    FlashLight = 13
 };
 
 MotoronI2C mc2(2);
@@ -65,7 +69,9 @@ void loop() {
         HorizontalThrust = inputData.toInt();
       } else if (inputData == "5" || inputData == "6" || inputData == "7" || inputData == "8" || inputData == "9") {
         VerticalThrust = inputData.toInt();
-      } else if (inputData == "10"){
+      } else if (inputData == "10" || inputData == "11" || inputData == "12") {
+        ClawMovment = inputData.toInt();
+      } else if (inputData == "13"){
         digitalWrite(LED_BUILTIN, HIGH);  // turn on LED
         delay(500);
         digitalWrite(LED_BUILTIN, LOW);   // turn off LED
@@ -126,6 +132,23 @@ void loop() {
     mc5.setSpeed(1, 0);
     mc4.setSpeed(1, 0);
   }
-  
+
+  if (ClawMovment == 10) {
+    // Claw Open
+    mc2.setSpeed(1, 400);
+    // Serial.println("Claw Open");
+  } else if (ClawMovment == 11) {
+    // Claw Close
+    mc2.setSpeed(1, -400);
+    // Serial.println("Claw Close");
+  } else if (ClawMovment == 12) {
+    // Claw Stop
+    mc2.setSpeed(1, 0);
+    // Serial.println("Claw Stop");
+  } else {
+    // Stop Claw Movement
+    mc2.setSpeed(1, 0);
+  }
+
   
 }

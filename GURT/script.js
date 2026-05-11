@@ -12,7 +12,10 @@ const ResponseKind = {
     Down: 7,
     RollLeft: 8,
     RollRight: 9,
-    FlashLight: 10
+    ClawOpen: 10,
+    ClawClose: 11,
+    ClawStop: 12,
+    FlashLight: 13
 }
 
 let connectionStatus = {
@@ -23,7 +26,7 @@ let connectionStatus = {
     note: ""
 }
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     startPage.showModal();
 })
 
@@ -35,7 +38,7 @@ function moveToStep(step) {
 }
 
 async function testCamera() {
-   await startTwoCameras();
+    await startTwoCameras();
 }
 
 async function testSerial() {
@@ -49,7 +52,7 @@ function updateStatus() {
     // TODO: Add StatusBartSipson
     document.getElementById("statusBar").innerHTML = newStatus;
     document.getElementById("stepsBar").innerText = newStatus;
- }
+}
 
 function openMenu(menuNum) {
     document.getElementById('cameraMenu').close();
@@ -60,11 +63,11 @@ function openMenu(menuNum) {
         case 1:
             document.getElementById('cameraMenu').show();
             break;
-        
+
         case 2:
             document.getElementById('serialMenu').show();
             break;
-        
+
         case 3:
             document.getElementById('floatMenu').show();
             break;
@@ -74,81 +77,81 @@ function openMenu(menuNum) {
 }
 
 function notification(notaName) {
-  var x = document.getElementById("notification");
-  x.innerHTML = notaName;
-  x.className = "show";
-  setTimeout(function () {
-    x.className = x.className.replace("show", "");
-  }, 4500);
+    var x = document.getElementById("notification");
+    x.innerHTML = notaName;
+    x.className = "show";
+    setTimeout(function () {
+        x.className = x.className.replace("show", "");
+    }, 4500);
 }
-  
+
 function error(notaName) {
-  console.error(notaName);
-  var x = document.getElementById("error");
-  x.innerHTML = notaName;
-  x.className = "show";
-  setTimeout(function () {
-    x.className = x.className.replace("show", "");
-  }, 4500);
+    console.error(notaName);
+    var x = document.getElementById("error");
+    x.innerHTML = notaName;
+    x.className = "show";
+    setTimeout(function () {
+        x.className = x.className.replace("show", "");
+    }, 4500);
 }
 
 // Camera
-    let streamStarted = false;
-    const cameraVideo = document.getElementById("cameraVideo");
-    const cameraVideo2 = document.getElementById("cameraVideo2"); 
-    let cameraStream;
-    let cameraStream2; 
-    let cameraIDs = [];
-    const canvas = document.getElementById("canvas");
-    const canvas2 = document.getElementById("canvas2");
+let streamStarted = false;
+const cameraVideo = document.getElementById("cameraVideo");
+const cameraVideo2 = document.getElementById("cameraVideo2");
+let cameraStream;
+let cameraStream2;
+let cameraIDs = [];
+const canvas = document.getElementById("canvas");
+const canvas2 = document.getElementById("canvas2");
 
-    async function getCameraSelection() {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        return devices.filter(device => device.kind === "videoinput");
-    }
+async function getCameraSelection() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    return devices.filter(device => device.kind === "videoinput");
+}
 
-    async function startSingleCamera(deviceId, videoElement, cameraNumber) {
-        try {
-            const cameraConstraints = {
-                    video: {
-                      deviceId: { exact: deviceId }, 
-                      width: { ideal: 1920 },
-                      height: { ideal: 1080 }
-                    }
-                };
-            const stream = await navigator.mediaDevices.getUserMedia(cameraConstraints).catch(err => {
-                console.error(`Error accessing camera ${cameraNumber}:`, err);
-                error(`Failed to access Camera ${cameraNumber}`);
-                return null;
-            });
-
-            videoElement.srcObject = stream;
-            videoElement.play();
-
-            stream.getVideoTracks().forEach(track => {
-                track.onended = function () {
-                    connectionStatus.camera = false;
-                    connectionStatus.note = `Camera ${cameraNumber} disconnected`;
-                    updateStatus();
-                    reconnectCamera(deviceId, videoElement, cameraNumber);
-                    error(`Camera ${cameraNumber} disconnected`);
-                    navigator.getGamepads()[0].vibrationActuator.playEffect("dual-rumble", {
-                      startDelay: 0,
-                      duration: 200,
-                      weakMagnitude: 1.0,
-                      strongMagnitude: 1.0,
-                    });
-                };
-            });
-
-            notification(`Camera ${cameraNumber} connected`);
-            return stream;
-
-        } catch (err) {
-            console.error(err);
+async function startSingleCamera(deviceId, videoElement, cameraNumber) {
+    try {
+        const cameraConstraints = {
+            video: {
+                deviceId: { exact: deviceId },
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
+            }
+        };
+        const stream = await navigator.mediaDevices.getUserMedia(cameraConstraints).catch(err => {
+            console.error(`Error accessing camera ${cameraNumber}:`, err);
+            error(`Failed to access Camera ${cameraNumber}`);
             return null;
-        }
-    } 
+        });
+
+        videoElement.srcObject = stream;
+        videoElement.play();
+
+        stream.getVideoTracks().forEach(track => {
+            track.onended = function () {
+                connectionStatus.camera = false;
+                connectionStatus.note = `Camera ${cameraNumber} disconnected`;
+                updateStatus();
+                reconnectCamera(deviceId, videoElement, cameraNumber);
+                error(`Camera ${cameraNumber} disconnected`);
+                navigator.getGamepads()[0].vibrationActuator.playEffect("dual-rumble", {
+                    startDelay: 0,
+                    duration: 200,
+                    weakMagnitude: 1.0,
+                    strongMagnitude: 1.0,
+                });
+            };
+        });
+
+        notification(`Camera ${cameraNumber} connected`);
+        return stream;
+
+    } catch (err) {
+        console.error(err);
+        return null;
+    }
+}
 
 async function startTwoCameras() {
     try {
@@ -193,7 +196,7 @@ async function startTwoCameras() {
         connectionStatus.camera = false;
         updateStatus();
     }
-} 
+}
 
 function stopStream() {
     if (cameraStream) {
@@ -204,7 +207,7 @@ function stopStream() {
 }
 
 async function reconnectCamera(deviceId, videoElement, cameraNumber) {
-    let reconnectInterval = setInterval(async function() {
+    let reconnectInterval = setInterval(async function () {
         if (!connectionStatus.camera) {
             console.log("Attempting to reconnect camera " + cameraNumber + "...");
             if (await startSingleCamera(deviceId, videoElement, cameraNumber)) {
@@ -242,7 +245,7 @@ function captureImages() {
         cameraVideo2.play();
     }
 
-    var newTab = window.open('about:blank','image from canvas');
+    var newTab = window.open('about:blank', 'image from canvas');
     newTab.document.write("<img src='" + dataURL + "' alt='from canvas'/>");
     newTab.document.write("<img src='" + dataURL2 + "' alt='from canvas'/>");
 };
@@ -256,14 +259,13 @@ let lastHeartbeat;
 let HorizontalThrust = 0;
 let VerticalThrust = 0;
 
-function setVirtualRobotArrow(direction){
-    // Sets to nothing
-    // document.getElementById('virtualRobot').src = ;
+function setVirtualRobotArrow(direction) {
+
     if(direction == 1){
-        // Up
+        // Forward
         document.getElementById('virtualRobot').src = "./images/Up Blue Crab.png";
     } else if (direction == 2){
-        // Down
+        // Backward
         document.getElementById('virtualRobot').src = "./images/Down Blue Crab.png";
     } else if (direction == 3){
         // Left
@@ -273,7 +275,18 @@ function setVirtualRobotArrow(direction){
         document.getElementById('virtualRobot').src = "./images/Right Blue Crab.png";
     } else {
         // Stop
-        document.getElementById('virtualRobot').src = "";
+        document.getElementById('virtualRobot').src = "./images/Nothing Blue Crab.png";
+    }
+
+    if(VerticalThrust == 6){
+        // Up
+        document.getElementById('virtualRobot2').src = "./images/Up Vertical Blue Crab.png";
+    } else if(VerticalThrust == 7){
+        // Down
+        document.getElementById('virtualRobot2').src = "./images/Down Vertical Blue Crab.png";
+    } else {
+        // Nothing
+        document.getElementById('virtualRobot2').src = "./images/Nothing Vertical Blue Crab.png";
     }
 }
 
@@ -300,7 +313,27 @@ async function startSerial() {
                 while ((newlineIndex = receivedData.indexOf('\n')) !== -1) {
                     const line = receivedData.substring(0, newlineIndex).trim();
                     if (line) {
-                        if (line.toLocaleLowerCase() === "hi") {
+                        // switch (line.toLowerCase()) {
+                        //     case "hi":
+                        //         connectionStatus.serial = true;
+                        //         updateStatus();
+                        //         notification("Arduino Connected");
+                        //         setInterval(serialHeartbeatTimer, 1000);
+                        //         moveToStep(3);
+                        //     case "hb":
+                        //         lastHeartbeat = new Date();
+                        //     default:
+                        //         if (line.toLocaleLowerCase().includes("ht")) {
+                        //             HorizontalThrust = line.toLocaleLowerCase().split("ht")[1];
+                        //             // Sets the virtual robots arrow position.
+                        //             setVirtualRobotArrow(HorizontalThrust);
+                        //         } else if (line.toLocaleLowerCase().includes("vt")) {
+                        //             VerticalThrust = line.toLocaleLowerCase().split("vt")[1];
+                        //         } else {
+                        //             addToConsole(line);
+                        //         }
+                        // }
+                        if (line.toLowerCase() === "hi") {
                             connectionStatus.serial = true;
                             updateStatus();
                             notification("Arduino Connected");
@@ -336,23 +369,23 @@ async function startSerial() {
 }
 
 function serialHeartbeatTimer() {
-      const now = new Date();
-      const diffInMs = now - lastHeartbeat;
+    const now = new Date();
+    const diffInMs = now - lastHeartbeat;
 
-      const totalSeconds = Math.floor(diffInMs / 1000);
+    const totalSeconds = Math.floor(diffInMs / 1000);
 
-      if (document.getElementById('serialTimer')) document.getElementById('serialTimer').innerText = `${totalSeconds}s`;
-    }
+    if (document.getElementById('serialTimer')) document.getElementById('serialTimer').innerText = `${totalSeconds}s`;
+}
 
 async function writeSerial(dataGotten) {
     // console.log("Writing to Arduino:", dataGotten);
     try {
         const writer = port.writable.getWriter();
         const encoder = new TextEncoder();
-    
+
         const data = encoder.encode(dataGotten + '\n');
         await writer.write(data);
-    
+
         // Allow the serial port to be closed later.
         writer.releaseLock();
     } catch (errorText) {
@@ -373,20 +406,36 @@ function testSerialConnection() {
     writeSerial(ResponseKind.FlashLight);
 }
 
-function changeTheme(color1, color2, color3, color4){
+function changeTheme(color1, color2, color3, color4) {
     const root = document.documentElement;
     root.style.setProperty('--color1', color1);
     root.style.setProperty('--color2', color2);
     root.style.setProperty('--color3', color3);
     root.style.setProperty('--color4', color4);
-  }
+}
 
-function changeSideBarLocation(newLocation){
+function changeSideBarLocation(newLocation) {
     // document.getElementById('serialMenu'). = newLocation;
 }
 
 let buttonPressed = new Array(18).fill(false);
 let axisRisingEdgeStorage = {}
+let clawActionStorage = 0;
+let clawTimeoutStorage;
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === "ArrowUp" || event.key === "w" || event.key === "W") {
+    clawActionStorage = 1;
+  } else if (event.key === "ArrowDown" || event.key === "s" || event.key === "S") {
+    clawActionStorage = 2;
+  }
+});
+
+document.addEventListener('keyup', (event) => {
+  if ((event.key === "ArrowUp" || event.key === "w" || event.key === "W") || (event.key === "ArrowDown" || event.key === "s" || event.key === "S")) {
+    clawActionStorage = 0;
+  }
+});
 
 function gameLoop() {
     // This is where we will check for controller input and send it to the arduino
@@ -394,11 +443,14 @@ function gameLoop() {
     if (!gamepads) {
         return;
     }
-    
-    const gp = gamepads[0]; // Assuming we only care about the first gamepad
 
-    for(i = 0; i < 18; i++){
-        if(!gp.buttons[i].pressed) {
+    const gp = gamepads[0];
+
+    for (i = 0; i < 18; i++) {
+        if (!gp.buttons[i].pressed) {
+            if ((i == 12 || i == 13) && buttonPressed[i]) {
+                writeSerial(ResponseKind.ClawStop.toString());
+            }
             buttonPressed[i] = false;
         } else if (gp.buttons[i].pressed && !buttonPressed[i]) {
             buttonPressed[i] = true;
@@ -406,6 +458,16 @@ function gameLoop() {
         }
     }
 
+    if (clawActionStorage == 1 && !clawTimeoutStorage) {
+        writeSerial(ResponseKind.ClawOpen.toString());
+        clawTimeoutStorage = true
+    } else if (clawActionStorage == 2 && !clawTimeoutStorage) {
+        writeSerial(ResponseKind.ClawClose.toString());
+        clawTimeoutStorage = true
+    } else if (clawActionStorage == 0) {
+        if (clawTimeoutStorage) writeSerial(ResponseKind.ClawStop.toString());
+        clawTimeoutStorage = false;
+    }
 
     if (gp.axes[0] < -0.5 && !axisRisingEdgeStorage[0]) {
         writeSerial(ResponseKind.Right.toString());
@@ -430,24 +492,30 @@ function gameLoop() {
     }
     axisRisingEdgeStorage[3] = Math.abs(gp.axes[3]) > 0.5;
 
-    for (var i=0; i<gp.axes.length; i++) {
-      const relativeOpacity = Math.max(0.1, Math.min(1, Math.abs(gp.axes[i] ?? 0)));
-      document.getElementById("controller1Status").getElementsByClassName("controllerProperty")[i].style.opacity = relativeOpacity;
+    for (var i = 0; i < gp.axes.length; i++) {
+        const relativeOpacity = Math.max(0.1, Math.min(1, Math.abs(gp.axes[i] ?? 0)));
+        document.getElementById("controller1Status").getElementsByClassName("controllerProperty")[i].style.opacity = relativeOpacity;
     }
-    
+
 
     requestAnimationFrame(gameLoop);
 }
 
 function buttonAction(action) {
-        if(action == 0){
-            writeSerial(ResponseKind.FlashLight.toString());
-        } else if(action == 9){
-            writeSerial(ResponseKind.FlashLight.toString());
-        } else if(action == 17){
-            captureImages();
-        }
+    if (action == 0) {
+        writeSerial(ResponseKind.FlashLight.toString());
+    } else if (action == 9) {
+        writeSerial(ResponseKind.FlashLight.toString());
+    } else if (action == 17) {
+        captureImages();
+    } else if (action == 12) {
+        writeSerial(ResponseKind.ClawOpen.toString());
+        console.log("Claw Open");
+    } else if (action == 13) {
+        writeSerial(ResponseKind.ClawClose.toString());
+        console.log("Claw Close");
     }
+}
 
 window.addEventListener("gamepadconnected", (e) => {
     const gp = navigator.getGamepads()[e.gamepad.index];
